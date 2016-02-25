@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<widget xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:vs="http://schemas.microsoft.com/appx/2014/htmlapps" id="io.cordova.myapp6a8090" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" defaultlocale="en-US">
-  <name>BlankCordovaApp6</name>
-  <description>A blank project that uses Apache Cordova to help you build an app that targets multiple mobile platforms: Android, iOS, Windows, and Windows Phone.</description>
-  <author href="http://cordova.io" email="dev@cordova.apache.org">Apache Cordova Team </author>
+<widget xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:vs="http://schemas.microsoft.com/appx/2014/htmlapps" id="com.flosim.MicrosoftGraphCordova" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" defaultlocale="en-US">
+  <name>MicrosoftGraphCordova</name>
+  <description>Demo of Microsoft Graph using ADAL Cordova plugin.</description>
+  <author href="http://cordova.io" email="dev@cordova.apache.org">Flow Simulation Ltd.</author>
   <content src="index.html" />
   <access origin="*" />
   <vs:features />
@@ -111,6 +111,11 @@
       <vs:name>io.cordova.myapp6a8090</vs:name>
     </vs:platformSpecificWidget>
   </vs:platformSpecificValues>
+  <preference name="android-minSdkVersion" value="14" />
   <plugin name="cordova-plugin-ms-adal" version="0.6.2" src="https://github.com/AzureAD/azure-activedirectory-library-for-cordova" />
-    <preference name="android-minSdkVersion" value="14" />
+  <preference name="KeepRunning" value="True" />
+  <preference name="ShowTitle" value="True" />
+  <preference name="InAppBrowserStorageEnabled" value="True" />
+  <preference name="SuppressesIncrementalRendering" value="True" />
+  <preference name="WindowsStoreDisplayName" value="MicrosoftGraphCordova" />
 </widget>

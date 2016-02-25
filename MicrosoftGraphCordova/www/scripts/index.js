@@ -71,14 +71,15 @@
 	function getAccessToken1(resourceUrl, appId, redirectUrl, success, fail) {
 		try {
 			// can try to use acquireTokenSilent here if already have a token
-			if (authContext.tokenCache.readItems()._value.length > 0) {
-				var tokenCacheItem = authContext.tokenCache.readItems()._value[0];
-				success(tokenCacheItem);
-				return;
-			}
-			authContext.acquireTokenAsync(resourceUrl, appId, redirectUrl).then(function (authResponse) {
-				success(authResponse);
-			}, fail);
+			authContext.tokenCache.readItems().then(function (cacheItems) {
+				if (cacheItems && cacheItems.length > 0) {
+					success(cacheItems[0]);
+					return;
+				}
+				authContext.acquireTokenAsync(resourceUrl, appId, redirectUrl).then(function (authResponse) {
+					success(authResponse);
+				}, fail);
+			});
 		} catch (ex) {
 			fail(ex.message);
 		}
