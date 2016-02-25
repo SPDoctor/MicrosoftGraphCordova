@@ -4,7 +4,7 @@
 // and then run "window.location.reload()" in the JavaScript Console.
 (function () {
 	"use strict";
-	var tenantName = 'flosim';
+	var tenantName;
 	var authority = "https://login.windows.net/" + tenantName + ".onmicrosoft.com";
 	var resourceUrl = 'https://graph.microsoft.com/';
 	var appId = "92f98787-c980-4c15-9be0-348ba4244408";
@@ -19,7 +19,7 @@
 		document.addEventListener('pause', onPause.bind(this), false);
 		document.addEventListener('resume', onResume.bind(this), false);
 		document.getElementById("logout").addEventListener('click', onLogout.bind(this), false);
-		document.getElementById("loadToken").addEventListener('click', onLoadToken.bind(this), false);
+		document.getElementById("loaddata").addEventListener('click', onLoadData.bind(this), false);
 		output = document.getElementById("output");
 
 		// TODO: Cordova has been loaded. Perform any initialization that requires Cordova here.
@@ -29,7 +29,15 @@
 		output.innerHTML = err.message;
 	}
 
-	function onLoadToken() {
+	function onLoadData() {
+		if (tenantName !== document.getElementById("tenantname").value) {
+			// tenantName has changed - reset auth context 
+			tenantName = document.getElementById("tenantname").value;
+			authority = "https://login.windows.net/" + tenantName + ".onmicrosoft.com";
+			authContext = null;
+		}
+		document.getElementById("contacts").innerHTML = "";
+
 		getAccessToken(resourceUrl, appId, redirectUrl, function (response) {
 			var message = "";
 			message += "Access token: " + response.accessToken;
