@@ -1,16 +1,11 @@
-﻿// For an introduction to the Blank template, see the following documentation:
-// http://go.microsoft.com/fwlink/?LinkID=397704
-// To debug code on page load in Ripple or on Android devices/emulators: launch your app, set breakpoints, 
+﻿// To debug code on page load in Ripple or on Android devices/emulators: launch your app, set breakpoints, 
 // and then run "window.location.reload()" in the JavaScript Console.
 (function () {
 	"use strict";
-	var tenantName;
-	var authority = "https://login.windows.net/" + tenantName + ".onmicrosoft.com";
+	var tenantName, authority, authContext, output;
 	var resourceUrl = 'https://graph.microsoft.com/';
 	var appId = "92f98787-c980-4c15-9be0-348ba4244408";
 	var redirectUrl = "http://localhost:4400/www/index.html";
-	var authContext;
-	var output;
 
 	document.addEventListener('deviceready', onDeviceReady.bind(this), false);
 
@@ -18,11 +13,10 @@
 		// Handle the Cordova pause and resume events
 		document.addEventListener('pause', onPause.bind(this), false);
 		document.addEventListener('resume', onResume.bind(this), false);
-		document.getElementById("logout").addEventListener('click', onLogout.bind(this), false);
 		document.getElementById("loaddata").addEventListener('click', onLoadData.bind(this), false);
+		document.getElementById("clearCache").addEventListener('click', onClearCache.bind(this), false);
+		document.getElementById("clearOutput").addEventListener('click', onClearOutput.bind(this), false);
 		output = document.getElementById("output");
-
-		// TODO: Cordova has been loaded. Perform any initialization that requires Cordova here.
 	};
 
 	function fail(err) {
@@ -33,20 +27,14 @@
 		if (tenantName !== document.getElementById("tenantname").value) {
 			// tenantName has changed - reset auth context 
 			tenantName = document.getElementById("tenantname").value;
-			authority = "https://login.windows.net/" + tenantName + ".onmicrosoft.com";
+			if(tenantName.length > 0) authority = "https://login.windows.net/" + tenantName + ".onmicrosoft.com";
+			else authority = "https://login.windows.net/common";
 			authContext = null;
 		}
 		document.getElementById("contacts").innerHTML = "";
 
 		getAccessToken(resourceUrl, appId, redirectUrl, function (response) {
-			var message = "";
-			message += "Access token: " + response.accessToken;
-			message += "<br />\r\n";
-			message += "Decoded token: " + decodeJWT(response.accessToken);
-			message += "<br />\r\n";
-			message += "Token will expire on: " + response.expiresOn;
-			message += "<br />\r\n";
-			output.innerHTML = message;
+			output.innerHTML = displayTokenResponse(response);
 
 			var endPointUri = "https://graph.microsoft.com/v1.0/";
 			var requestUri = endPointUri + 'me/contacts?$top=20';
@@ -72,25 +60,35 @@
 		}, fail);
 	};
 
-	function onLogout() {
+	function onClearCache() {
 		if (authContext) authContext.tokenCache.clear();
 	}
 
-	function getAccessToken1(resourceUrl, appId, redirectUrl, success, fail) {
+	function onClearOutput() {
+		document.getElementById("output").innerHTML = "";
+		document.getElementById("contacts").innerHTML = "";
+	}
+
+	function getAccessTokenFromContext(context, resourceUrl, appId, redirectUrl, success, fail) {
 		try {
-			// can try to use acquireTokenSilent here if already have a token
-			authContext.tokenCache.readItems().then(function (cacheItems) {
-				if (cacheItems && cacheItems.length > 0) {
-					success(cacheItems[0]);
-					return;
-				}
-				authContext.acquireTokenAsync(resourceUrl, appId, redirectUrl).then(function (authResponse) {
-					success(authResponse);
-				}, fail);
+			// wrapping acquireTokenAsync with a call to acquireTokenSilentAsync
+			// is due to a peculiarity of the cordova plugin implementation of the ADAL library
+			// where the PromptBehaviour of acquireTokenAsync is set to "always"
+			context.acquireTokenSilentAsync(resourceUrl, appId).then(success, function() {
+				context.acquireTokenAsync(resourceUrl, appId, redirectUrl).then(success, fail);
 			});
 		} catch (ex) {
 			fail(ex.message);
 		}
+	}
+
+	function getContextFromCachedAuthority() {
+		if (authContext && authContext.tokenCache) authContext.tokenCache.readItems().then(function (items) {
+			if (items.length > 0) {
+				authority = items[0].authority;
+				authContext = new Microsoft.ADAL.AuthenticationContext(authority);
+			}
+		});
 	}
 
 	function getAccessToken(resourceUrl, appId, redirectUrl, success, fail) {
@@ -98,16 +96,37 @@
 			if (!authContext) {
 				Microsoft.ADAL.AuthenticationContext.createAsync(authority).then(function (context) {
 					authContext = context;
-					getAccessToken1(resourceUrl, appId, redirectUrl, success, fail);
+					// If you use the common endpoint the user will be prompted each time
+					// the app is run unless authContext uses the authority from the cache
+					if (tenantName.length === 0) getContextFromCachedAuthority();
+					getAccessTokenFromContext(authContext, resourceUrl, appId, redirectUrl, success, fail);
 				}, fail);
 			}
-			else getAccessToken1(resourceUrl, appId, redirectUrl, success, fail);
+			else getAccessTokenFromContext(authContext, resourceUrl, appId, redirectUrl, success, fail);
 		} catch (ex) {
 			fail(ex.message);
 		}
 	}
 
+	function displayTokenResponse(response) {
+		var message = "";
+		message += "<b>Access token:</b> " + response.accessToken;
+		message += "<br />\r\n";
+		message += decodeJWT(response.accessToken);
+		message += "<br />\r\n";
+		message += "<b>Token will expire on:</b> " + response.expiresOn;
+		message += "<br />\r\n";
+		message += "<b>UserInfo:</b> " + response.userInfo.displayableId + " (" + response.userInfo.uniqueId + ")";
+		message += "<br />\r\n";
+		message += "<b>Identity Provider:</b> " + response.userInfo.identityProvider;
+		message += "<br />\r\n";
+		return message;
+	}
+
 	function decodeJWT(encodedJWT) {
+		// Decode JWT token for demonstration purposes only.
+		// It's recommend that you treat the token as opaque
+		// and don't try to use the contents directly.
 		var decodedJWT = "";
 		try {
 			var sections = encodedJWT.split(".");

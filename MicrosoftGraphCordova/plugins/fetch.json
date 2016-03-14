@@ -9,9 +9,8 @@
     },
     "cordova-plugin-ms-adal": {
         "source": {
-            "type": "git",
-            "url": "https://github.com/AzureAD/azure-activedirectory-library-for-cordova",
-            "subdir": "."
+            "type": "registry",
+            "id": "cordova-plugin-ms-adal"
         },
         "is_top_level": true,
         "variables": {}

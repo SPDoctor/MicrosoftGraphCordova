@@ -10,10 +10,19 @@
 <body>
 	<h1>ADAL Cordova plugin test</h1>
 	<button id="loaddata">Load Data</button>
-	<button id="logout">Logout</button>
-	<input type="text" id="tenantname" placeholder="enter tenant name"/>
+	<button id="clearCache">Clear Cache</button>
+	<button id="clearOutput">Clear Output</button>
+	<p>
+		Enter tenant name or leave empty to use common endpoint: 
+		<input type="text" id="tenantname" placeholder="enter tenant name" />
+	</p>
+	<p>
+		Using the common endpoint means the tenant is determined by the sign-on credentials you use,
+		assuming the app is configured in AzureAD to be multitenant.
+	</p>
+	<h2>Token</h2>
 	<p id="output"></p>
-	<h2>Contacts</h2>
+	<h2>Data</h2>
 	<p id="contacts"></p>
 
 	<!-- Cordova reference, this is added to your app when it's built. -->
